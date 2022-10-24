@@ -7,7 +7,15 @@ const {shuffleArray, getCSS, getJS} = require('./utils')
 app.use(express.json())
 
 app.use(express.static('public'))
+var Rollbar = require('rollbar')
+var rollbar = new Rollbar({
+  accessToken: '64c69d00ecbe40a785107ce6470273dd',
+  captureUncaught: true,
+  captureUnhandledRejections: true,
+})
 
+// record a generic message and send it to Rollbar
+rollbar.log('Hello world!')
 app.get('/styles', getCSS)
 app.get('/js', getJS)
 app.get('/api/robots', (req, res) => {
@@ -25,8 +33,10 @@ app.get('/api/robots/five', (req, res) => {
         let choices = shuffled.slice(0, 5)
         let compDuo = shuffled.slice(6, 8)
         res.status(200).send({choices, compDuo})
+        rollbar.log('5 random robots displayed')
     } catch (error) {
         console.log('ERROR GETTING FIVE BOTS', error)
+        rollbar.error('ERROR GETTING FIVE BOTS')
         res.sendStatus(400)
     }
 })
@@ -56,6 +66,7 @@ app.post('/api/duel', (req, res) => {
             playerRecord.losses++
             res.status(200).send('You won!')
         }
+        rollbar.log('A duel has been completed')
     } catch (error) {
         console.log('ERROR DUELING', error)
         res.sendStatus(400)
@@ -64,6 +75,7 @@ app.post('/api/duel', (req, res) => {
 
 app.get('/api/player', (req, res) => {
     try {
+        rollbar.log('get player record successful')
         res.status(200).send(playerRecord)
     } catch (error) {
         console.log('ERROR GETTING PLAYER STATS', error)
